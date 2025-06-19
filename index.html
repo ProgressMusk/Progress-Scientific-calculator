@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scientific Calculator 991FX</title>
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #34495e;
+            --accent-color: #3498db;
+            --text-color: #ecf0f1;
+            --btn-color: #7f8c8d;
+            --func-btn-color: #16a085;
+            --op-btn-color: #e74c3c;
+            --equals-btn-color: #27ae60;
+            --mode-btn-color: #8e44ad;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #f5f5f5;
+        }
+
+        .calculator {
+            width: 320px;
+            background-color: var(--primary-color);
+            border-radius: 10px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        .display {
+            padding: 20px;
+            text-align: right;
+            background-color: var(--secondary-color);
+            color: var(--text-color);
+        }
+
+        .history {
+            min-height: 20px;
+            font-size: 16px;
+            color: rgba(236, 240, 241, 0.7);
+            margin-bottom: 5px;
+            word-wrap: break-word;
+        }
+
+        .current {
+            font-size: 32px;
+            font-weight: bold;
+            word-wrap: break-word;
+        }
+
+        .keypad {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            grid-gap: 5px;
+            padding: 10px;
+        }
+
+        .btn {
+            border: none;
+            outline: none;
+            padding: 15px 0;
+            font-size: 18px;
+            border-radius: 5px;
+            cursor: pointer;
+            background-color: var(--btn-color);
+            color: var(--text-color);
+            transition: all 0.2s;
+        }
+
+        .btn:hover {
+            opacity: 0.9;
+            transform: scale(0.98);
+        }
+
+        .btn:active {
+            transform: scale(0.95);
+        }
+
+        .num {
+            background-color: var(--secondary-color);
+        }
+
+        .func {
+            background-color: var(--func-btn-color);
+            font-size: 16px;
+        }
+
+        .op {
+            background-color: var(--op-btn-color);
+        }
+
+        .equals {
+            background-color: var(--equals-btn-color);
+            grid-column: span 1;
+        }
+
+        .clear, .delete {
+            background-color: #c0392b;
+        }
+
+        .shift, .alpha, .mode {
+            background-color: var(--mode-btn-color);
+            font-size: 14px;
+        }
+
+        .active {
+            background-color: #f39c12;
+            box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.5);
+        }
+
+        .mode-display {
+            position: absolute;
+            top: 5px;
+            left: 5px;
+            color: var(--text-color);
+            font-size: 12px;
+            background-color: rgba(0,0,0,0.3);
+            padding: 2px 5px;
+            border-radius: 3px;
+        }
+
+        .menu {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: var(--secondary-color);
+            padding: 20px;
+            border-radius: 10px;
+            z-index: 100;
+            display: none;
+            max-height: 80vh;
+            overflow-y: auto;
+            width: 300px;
+        }
+
+        .menu h3 {
+            color: var(--text-color);
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .menu-btn {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 5px;
+            background-color: var(--func-btn-color);
+            color: var(--text-color);
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .close-menu {
+            background-color: #c0392b;
+            margin-top: 15px;
+        }
+
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.7);
+            z-index: 50;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="calculator">
+        <div class="mode-display" id="modeDisplay">COMP</div>
+        <div class="display">
+            <div class="history" id="history"></div>
+            <div class="current" id="current">0</div>
+        </div>
+        
+        <div class="keypad">
+            <!-- First row -->
+            <button class="btn shift">SHIFT</button>
+            <button class="btn alpha">ALPHA</button>
+            <button class="btn mode" id="modeBtn">MODE</button>
+            <button class="btn clear">AC</button>
+            <button class="btn delete">DEL</button>
+            
+            <!-- Second row -->
+            <button class="btn func">x²</button>
+            <button class="btn func">x³</button>
+            <button class="btn func">x^y</button>
+            <button class="btn func">e^x</button>
+            <button class="btn func">10^x</button>
+            
+            <!-- Third row -->
+            <button class="btn func">√</button>
+            <button class="btn func">∛</button>
+            <button class="btn func">y√x</button>
+            <button class="btn func">ln</button>
+            <button class="btn func">log</button>
+            
+            <!-- Fourth row -->
+            <button class="btn func">(-)</button>
+            <button class="btn func">sin</button>
+            <button class="btn func">cos</button>
+            <button class="btn func">tan</button>
+            <button class="btn func">π</button>
+            
+            <!-- Fifth row -->
+            <button class="btn num">7</button>
+            <button class="btn num">8</button>
+            <button class="btn num">9</button>
+            <button class="btn func">sin⁻¹</button>
+            <button class="btn func">%</button>
+            
+            <!-- Sixth row -->
+            <button class="btn num">4</button>
+            <button class="btn num">5</button>
+            <button class="btn num">6</button>
+            <button class="btn func">cos⁻¹</button>
+            <button class="btn func">!</button>
+            
+            <!-- Seventh row -->
+            <button class="btn num">1</button>
+            <button class="btn num">2</button>
+            <button class="btn num">3</button>
+            <button class="btn func">tan⁻¹</button>
+            <button class="btn func">Ans</button>
+            
+            <!-- Eighth row -->
+            <button class="btn num">0</button>
+            <button class="btn num">.</button>
+            <button class="btn func">EXP</button>
+            <button class="btn equals">=</button>
+            <button class="btn func">RND</button>
+            
+            <!-- Operation buttons -->
+            <button class="btn op">+</button>
+            <button class="btn op">-</button>
+            <button class="btn op">×</button>
+            <button class="btn op">÷</button>
+        </div>
+    </div>
+
+    <div class="overlay" id="overlay"></div>
+    
+    <div class="menu" id="modeMenu">
+        <h3>Select Mode</h3>
+        <button class="menu-btn" data-mode="COMP">COMP (General Calculation)</button>
+        <button class="menu-btn" data-mode="COMPLX">COMPLX (Complex Number)</button>
+        <button class="menu-btn" data-mode="BASE-N">BASE-N (Base Conversion)</button>
+        <button class="menu-btn" data-mode="SD">SD (Standard Deviation)</button>
+        <button class="menu-btn" data-mode="REG">REG (Regression)</button>
+        <button class="menu-btn" data-mode="EQN">EQN (Equation Solver)</button>
+        <button class="menu-btn" data-mode="MAT">MAT (Matrix)</button>
+        <button class="menu-btn" data-mode="TABLE">TABLE (Function Table)</button>
+        <button class="menu-btn" data-mode="CONV">CONV (Unit Conversion)</button>
+        <button class="menu-btn close-menu">Close</button>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const currentDisplay = document.getElementById('current');
+            const historyDisplay = document.getElementById('history');
+            const modeDisplay = document.getElementById('modeDisplay');
+            const modeBtn = document.getElementById('modeBtn');
+            const modeMenu = document.getElementById('modeMenu');
+            const overlay = document.getElementById('overlay');
+            
+            let currentInput = '0';
+            let previousInput = '';
+            let operation = null;
+            let resetScreen = false;
+            let isShiftActive = false;
+            let isAlphaActive = false;
+            let lastAnswer = null;
+            let isDegreeMode = true;
+            let currentMode = 'COMP';
+            
+            // Complex number storage
+            let complexMode = {
+                active: false,
+                imaginary: '0',
+                isImaginaryInput: false
+            };
+            
+            // Statistics data
+            let statsData = [];
+            
+            // Update display
+            function updateDisplay() {
+                currentDisplay.textContent = currentInput;
+                historyDisplay.textContent = previousInput + (operation ? ' ' + operation : '');
+                modeDisplay.textContent = currentMode + (isDegreeMode ? ' DEG' : ' RAD');
+            }
+            
+            // Show mode menu
+            function showModeMenu() {
+                modeMenu.style.display = 'block';
+                overlay.style.display = 'block';
+            }
+            
+            // Hide mode menu
+            function hideModeMenu() {
+                modeMenu.style.display = 'none';
+                overlay.style.display = 'none';
+            }
+            
+            // Change calculator mode
+            function changeMode(mode) {
+                currentMode = mode;
+                resetCalculator();
+                
+                switch(mode) {
+                    case 'COMP':
+                        // Default mode - nothing special
+                        break;
+                    case 'COMPLX':
+                        complexMode.active = true;
+                        break;
+                    case 'BASE-N':
+                        // Will implement base conversion
+                        break;
+                    case 'SD':
+                        statsData = [];
+                        break;
+                    case 'REG':
+                        // Will implement regression
+                        break;
+                    case 'EQN':
+                        // Will implement equation solver
+                        break;
+                    case 'MAT':
+                        // Will implement matrix
+                        break;
+                    case 'TABLE':
+                        // Will implement function table
+                        break;
+                    case 'CONV':
+                        // Will implement unit conversion
+                        break;
+                }
+                
+                updateDisplay();
+                hideModeMenu();
+            }
+            
+            // Reset calculator state
+            function resetCalculator() {
+                currentInput = '0';
+                previousInput = '';
+                operation = null;
+                resetScreen = false;
+                complexMode = {
+                    active: false,
+                    imaginary: '0',
+                    isImaginaryInput: false
+                };
+            }
+            
+            // Append number
+            function appendNumber(number) {
+                if (currentInput === '0' || resetScreen) {
+                    currentInput = number;
+                    resetScreen = false;
+                } else {
+                    currentInput += number;
+                }
+                updateDisplay();
+            }
+            
+            // Append decimal
+            function appendDecimal() {
+                if (resetScreen) {
+                    currentInput = '0.';
+                    resetScreen = false;
+                    updateDisplay();
+                    return;
+                }
+                if (!currentInput.includes('.')) {
+                    currentInput += '.';
+                    updateDisplay();
+                }
+            }
+            
+            // Handle operator
+            function chooseOperator(op) {
+                if (currentInput === '') return;
+                if (previousInput !== '') {
+                    calculate();
+                }
+                operation = op;
+                previousInput = currentInput;
+                resetScreen = true;
+                updateDisplay();
+            }
+            
+            // Calculate result
+            function calculate() {
+                if (previousInput === '' || operation === null || resetScreen) return;
+                
+                let result;
+                const prev = parseFloat(previousInput);
+                const current = parseFloat(currentInput);
+                
+                switch (operation) {
+                    case '+':
+                        result = prev + current;
+                        break;
+                    case '-':
+                        result = prev - current;
+                        break;
+                    case '×':
+                        result = prev * current;
+                        break;
+                    case '÷':
+                        result = prev / current;
+                        break;
+                    case 'x^y':
+                        result = Math.pow(prev, current);
+                        break;
+                    case 'y√x':
+                        result = Math.pow(current, 1/prev);
+                        break;
+                    default:
+                        return;
+                }
+                
+                lastAnswer = result;
+                currentInput = result.toString();
+                operation = null;
+                previousInput = '';
+                resetScreen = true;
+                updateDisplay();
+            }
+            
+            // Clear all
+            function clearAll() {
+                if (currentMode === 'SD') {
+                    statsData = [];
+                }
+                resetCalculator();
+                updateDisplay();
+            }
+            
+            // Delete last character
+            function deleteLastChar() {
+                if (currentInput.length === 1 || (currentInput.length === 2 && currentInput.startsWith('-'))) {
+                    currentInput = '0';
+                } else {
+                    currentInput = currentInput.slice(0, -1);
+                }
+                updateDisplay();
+            }
+            
+            // Handle function buttons
+            function handleFunction(func) {
+                if (currentMode === 'COMPLX' && handleComplexFunction(func)) {
+                    return;
+                }
+                
+                if (currentMode === 'SD' && handleStatsFunction(func)) {
+                    return;
+                }
+                
+                let input = parseFloat(currentInput);
+                let result;
+                
+                switch (func) {
+                    case 'x²':
+                        result = input * input;
+                        break;
+                    case 'x³':
+                        result = input * input * input;
+                        break;
+                    case '√':
+                        result = Math.sqrt(input);
+                        break;
+                    case '∛':
+                        result = Math.cbrt(input);
+                        break;
+                    case 'e^x':
+                        result = Math.exp(input);
+                        break;
+                    case '10^x':
+                        result = Math.pow(10, input);
+                        break;
+                    case 'ln':
+                        result = Math.log(input);
+                        break;
+                    case 'log':
+                        result = Math.log10(input);
+                        break;
+                    case '(-)':
+                        result = -input;
+                        break;
+                    case 'sin':
+                        result = isDegreeMode ? Math.sin(degreesToRadians(input)) : Math.sin(input);
+                        break;
+                    case 'cos':
+                        result = isDegreeMode ? Math.cos(degreesToRadians(input)) : Math.cos(input);
+                        break;
+                    case 'tan':
+                        result = isDegreeMode ? Math.tan(degreesToRadians(input)) : Math.tan(input);
+                        break;
+                    case 'sin⁻¹':
+                        result = isDegreeMode ? radiansToDegrees(Math.asin(input)) : Math.asin(input);
+                        break;
+                    case 'cos⁻¹':
+                        result = isDegreeMode ? radiansToDegrees(Math.acos(input)) : Math.acos(input);
+                        break;
+                    case 'tan⁻¹':
+                        result = isDegreeMode ? radiansToDegrees(Math.atan(input)) : Math.atan(input);
+                        break;
+                    case 'π':
+                        result = Math.PI;
+                        break;
+                    case '!':
+                        result = factorial(input);
+                        break;
+                    case '%':
+                        result = input / 100;
+                        break;
+                    case 'Ans':
+                        if (lastAnswer !== null) {
+                            result = lastAnswer;
+                        } else {
+                            return;
+                        }
+                        break;
+                    case 'RND':
+                        result = Math.random();
+                        break;
+                    case 'EXP':
+                        if (currentInput === '0' || resetScreen) {
+                            currentInput = '1e';
+                        } else {
+                            currentInput += 'e';
+                        }
+                        resetScreen = false;
+                        updateDisplay();
+                        return;
+                    default:
+                        return;
+                }
+                
+                currentInput = result.toString();
+                updateDisplay();
+            }
+            
+            // Handle complex number functions
+            function handleComplexFunction(func) {
+                if (func === 'i') {
+                    if (complexMode.isImaginaryInput) {
+                        currentInput += 'i';
+                    } else {
+                        complexMode.isImaginaryInput = true;
+                        complexMode.imaginary = currentInput;
+                        currentInput = '0';
+                    }
+                    updateDisplay();
+                    return true;
+                }
+                return false;
+            }
+            
+            // Handle statistics functions
+            function handleStatsFunction(func) {
+                if (func === 'DATA') {
+                    const num = parseFloat(currentInput);
+                    if (!isNaN(num)) {
+                        statsData.push(num);
+                        currentInput = '0';
+                        updateDisplay();
+                    }
+                    return true;
+                }
+                
+                if (func === 'CLR') {
+                    statsData = [];
+                    currentInput = '0';
+                    updateDisplay();
+                    return true;
+                }
+                
+                if (func === 'x̄') {
+                    if (statsData.length > 0) {
+                        const mean = statsData.reduce((a, b) => a + b, 0) / statsData.length;
+                        currentInput = mean.toString();
+                        updateDisplay();
+                    }
+                    return true;
+                }
+                
+                return false;
+            }
+            
+            // Helper functions
+            function degreesToRadians(degrees) {
+                return degrees * (Math.PI / 180);
+            }
+            
+            function radiansToDegrees(radians) {
+                return radians * (180 / Math.PI);
+            }
+            
+            function factorial(n) {
+                if (n < 0) return NaN;
+                if (n === 0 || n === 1) return 1;
+                let result = 1;
+                for (let i = 2; i <= n; i++) {
+                    result *= i;
+                }
+                return result;
+            }
+            
+            // Event listeners
+            modeBtn.addEventListener('click', showModeMenu);
+            overlay.addEventListener('click', hideModeMenu);
+            
+            document.querySelectorAll('.menu-btn').forEach(button => {
+                if (button.classList.contains('close-menu')) {
+                    button.addEventListener('click', hideModeMenu);
+                } else {
+                    button.addEventListener('click', () => {
+                        changeMode(button.dataset.mode);
+                    });
+                }
+            });
+            
+            document.querySelectorAll('.num').forEach(button => {
+                button.addEventListener('click', () => {
+                    if (button.textContent === '.') {
+                        appendDecimal();
+                    } else {
+                        appendNumber(button.textContent);
+                    }
+                });
+            });
+            
+            document.querySelectorAll('.op').forEach(button => {
+                button.addEventListener('click', () => {
+                    chooseOperator(button.textContent);
+                });
+            });
+            
+            document.querySelector('.equals').addEventListener('click', calculate);
+            document.querySelector('.clear').addEventListener('click', clearAll);
+            document.querySelector('.delete').addEventListener('click', deleteLastChar);
+            
+            document.querySelectorAll('.func').forEach(button => {
+                button.addEventListener('click', () => {
+                    handleFunction(button.textContent);
+                });
+            });
+            
+            document.querySelector('.shift').addEventListener('click', () => {
+                isShiftActive = !isShiftActive;
+                document.querySelector('.shift').classList.toggle('active', isShiftActive);
+            });
+            
+            document.querySelector('.alpha').addEventListener('click', () => {
+                isAlphaActive = !isAlphaActive;
+                document.querySelector('.alpha').classList.toggle('active', isAlphaActive);
+            });
+            
+            // Keyboard support
+            document.addEventListener('keydown', (e) => {
+                if (e.key >= '0' && e.key <= '9') appendNumber(e.key);
+                else if (e.key === '.') appendDecimal();
+                else if (e.key === '+' || e.key === '-' || e.key === '*' || e.key === '/') {
+                    chooseOperator(e.key === '*' ? '×' : e.key === '/' ? '÷' : e.key);
+                }
+                else if (e.key === 'Enter' || e.key === '=') calculate();
+                else if (e.key === 'Escape') clearAll();
+                else if (e.key === 'Backspace') deleteLastChar();
+                else if (e.key === 's' || e.key === 'S') {
+                    isShiftActive = !isShiftActive;
+                    document.querySelector('.shift').classList.toggle('active', isShiftActive);
+                }
+                else if (e.key === 'a' || e.key === 'A') {
+                    isAlphaActive = !isAlphaActive;
+                    document.querySelector('.alpha').classList.toggle('active', isAlphaActive);
+                }
+                else if (e.key === 'm' || e.key === 'M') {
+                    showModeMenu();
+                }
+                else if (e.key === 'd' || e.key === 'D') {
+                    isDegreeMode = !isDegreeMode;
+                    updateDisplay();
+                }
+            });
+            
+            // Initialize
+            updateDisplay();
+        });
+    </script>
+</body>
+</html>
